@@ -13,11 +13,14 @@
 #include <log.h>
 #include <mapmem.h>
 #include <ram.h>
+#include <serial.h>
 #include <spl.h>
+#include <asm/arch-rockchip/boot_mode.h>
 #include <asm/arch-rockchip/bootrom.h>
 #include <asm/arch-rockchip/timer.h>
 #include <asm/global_data.h>
 #include <asm/io.h>
+#include <linux/delay.h>
 #include <linux/bitops.h>
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -107,6 +110,54 @@ __weak int arch_cpu_init(void)
 	return 0;
 }
 
+#if CONFIG_IS_ENABLED(ROCKCHIP_HOTKEY) && (CONFIG_ROCKCHIP_BOOT_MODE_REG != 0)
+static void rockchip_reset_from_hotkey(const int code)
+{
+	switch (code) {
+	case 0x02: /* Ctrl+B */
+		printf("Ctrl+B pressed, entering download mode...\n");
+		writel(BOOT_BROM_DOWNLOAD, CONFIG_ROCKCHIP_BOOT_MODE_REG);
+		do_reset(NULL, 0, 0, NULL);
+		/* NOTREACHED */
+	case 0x04: /* Ctrl+D */
+		printf("Ctrl+D pressed, entering loader mode...\n");
+		writel(BOOT_LOADER, CONFIG_ROCKCHIP_BOOT_MODE_REG);
+		do_reset(NULL, 0, 0, NULL);
+		/* NOTREACHED */
+	case 0x06: /* Ctrl+F */
+		printf("Ctrl+F pressed, entering fastboot mode...\n");
+		writel(BOOT_FASTBOOT, CONFIG_ROCKCHIP_BOOT_MODE_REG);
+		do_reset(NULL, 0, 0, NULL);
+		/* NOTREACHED */
+	default:
+		if (code <= 0x1a) /* 'z' */
+			log_debug("SPL Hotkey: Ctrl+%c\n", code + 'A' - 1);
+		else
+			log_debug("SPL Hotkey: Unknown code: 0x%x, ignore\n", code);
+	}
+}
+
+static void spl_hotkey_init(void)
+{
+	if (!gd || !(gd->flags & GD_FLG_HAVE_CONSOLE))
+		return;
+	if (gd->flags & GD_FLG_DISABLE_CONSOLE)
+		return;
+
+	/* Wait for the serial port to be ready to receive data. */
+	mdelay(100);
+
+	if (serial_tstc())
+		rockchip_reset_from_hotkey(serial_getc());
+	else
+		log_debug("SPL Hotkey: No key pressed, continue\n");
+}
+#else
+static void spl_hotkey_init(void)
+{
+}
+#endif
+
 void board_init_f(ulong dummy)
 {
 	int ret;
@@ -143,6 +194,9 @@ void board_init_f(ulong dummy)
 	}
 #endif
 	preloader_console_init();
+
+	if (CONFIG_IS_ENABLED(ROCKCHIP_HOTKEY))
+		spl_hotkey_init();
 }
 
 void spl_board_prepare_for_boot(void)
