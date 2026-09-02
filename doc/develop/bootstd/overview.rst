@@ -293,6 +293,9 @@ script_offset_f
 script_size_f
     Size of the script to load, e.g. 0x2000
 
+init_boot_comp_addr_r
+    Address to which to load the init_boot Android image, e.g. 0xd0000000
+
 vendor_boot_comp_addr_r
     Address to which to load the vendor_boot Android image, e.g. 0xe0000000
 

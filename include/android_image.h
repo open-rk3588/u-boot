@@ -357,6 +357,7 @@ struct andr_image_data {
 	ulong tags_addr;  /* physical addr for kernel tags */
 	u32 header_version;  /* version of the boot image header */
 	u32 boot_img_total_size;  /* boot image size */
+	u32 init_boot_img_total_size;  /* init boot image size */
 	u32 vendor_boot_img_total_size;  /* vendor boot image size */
 };
 
