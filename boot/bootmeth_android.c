@@ -454,6 +454,9 @@ static int avb_append_commandline_arg(struct bootflow *bflow, char *arg)
 
 static int avb_append_commandline(struct bootflow *bflow, char *cmdline)
 {
+	if (!strcmp(cmdline, ""))
+		return 0;
+
 	char *arg = strsep(&cmdline, " ");
 	int ret;
 
