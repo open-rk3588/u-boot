@@ -28,7 +28,10 @@
 	"fdt_addr_r=0x12000000\0"	\
 	"fdtoverlay_addr_r=0x12100000\0"	\
 	"ramdisk_addr_r=0x12180000\0"	\
-	"kernel_comp_size=0x8000000\0"
+	"kernel_comp_size=0x8000000\0"	\
+	"loadaddr=0x00c00800\0"		\
+	"init_boot_comp_addr_r=0x08c00800\0"	\
+	"vendor_boot_comp_addr_r=0x09400800\0"
 
 #define CFG_EXTRA_ENV_SETTINGS		\
 	"fdtfile=" CONFIG_DEFAULT_FDT_FILE "\0"	\
